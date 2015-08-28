@@ -1,0 +1,35 @@
+package qgame.engine.libs
+
+object Tuples{
+    /**
+     * Used to create tuples with 1 elements in Java.
+     */
+    object Tuple1{
+     def create[T1](t1:T1) = new Tuple1(t1)
+    }
+
+    /**
+    * Java Tuple1 container.
+    */
+    @SerialVersionUID(1L)
+    final case class Tuple1[T1](t1:T1) {
+       val toScala: scala.Tuple1[T1] = scala.Tuple1.apply(t1)
+    }
+
+    [2..22#/**
+     * Used to create tuples with 1 elements in Java.
+     */
+    object Tuple1 {
+      def create[[#T1#]]([#t1: T1#]) = new Tuple1([#t1#])
+    }
+
+    /**
+     * Java Tuple1 container.
+     */
+    @SerialVersionUID(##1L)
+    final case class Tuple1[[#T1#]]([#t1: T1#]) {
+       val toScala: ([#T1#]) = ([#t1#])
+    }#
+
+    ]
+}

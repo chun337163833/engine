@@ -1,0 +1,7 @@
+Java 7:
+-Xmn2G -Xss4M -Xms4G -Xmx4G -XX:+UseLargePages -XX:PermSize=256M -XX:+AggressiveOpts -XX:+UseFastAccessorMethods -XX:+UseStringCache -XX:+OptimizeStringConcat -XX:+UseCompressedStrings -XX:+UseBiasedLocking -Xincgc -XX:MaxGCPauseMillis=10 -XX:SoftRefLRUPolicyMSPerMB=10000 -XX:+CMSParallelRemarkEnabled -XX:ParallelGCThreads=10 -Djava.net.preferIPv4Stack=true
+
+Java 8:
+-Xmn2G -Xss4M -Xms4G -Xmx4G -XX:+UseLargePages -XX:+AggressiveOpts -XX:+UseFastAccessorMethods -XX:+OptimizeStringConcat -XX:+UseBiasedLocking -Xincgc -XX:MaxGCPauseMillis=10 -XX:SoftRefLRUPolicyMSPerMB=10000 -XX:+CMSParallelRemarkEnabled -XX:ParallelGCThreads=10 -Djava.net.preferIPv4Stack=true
+
+DEFAULT_JVM_OPTS="-server -XX:PermSize=256M -XX:+UseConcMarkSweepGC -XX:MaxTenuringThreshold=15 -XX:CMSInitiatingOccupancyFraction=68 -XX:MaxPermSize=1024m -Xms2048M -Xmx4096M -Xss512K -XX:ThreadStackSize=512k -agentpath:/data/tool/yjp-2015-build-15050/bin/linux-x86-64/libyjpagent.so"

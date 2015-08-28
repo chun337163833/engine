@@ -1,0 +1,16 @@
+1，实现文件系统和文件操作API
+2，实现和kafka的zookeeper的集成
+3，和akka stream的集成
+4，提供基于akka http和ws
+5，提供基于akka http的http server
+6，统计支持
+7，统一日志系统
+8，基于props的module。
+9，提供文档，明确集群部分，模块部分
+10,akka context的threadlocal部分可以优化，采用fastthreadlocal
+////////////////////////////
+
+系统管理模块
+1，查看集群中的Engine
+             |=> 查看Engine的modules（以及注册的以及运行状态），Ip，可以通过发命令，开启关闭Module，module热更新（L）
+2，Engine重启

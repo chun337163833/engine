@@ -31,8 +31,19 @@ private[netty] abstract class TcpTransportAssociationHandler(setting: Setting, c
       log.debug("tcp transport connection active remote :[{}],local :[{}]", remoteAddress, localAddress)
       val remoteAddr = remoteAddress.asInstanceOf[InetSocketAddress]
       val localAddr = localAddress.asInstanceOf[InetSocketAddress]
-
-      val remote = Address(setting.transportProtocal, context.system.name, remoteAddr.getHostString, remoteAddr.getPort)
+      println("--------------------------------")
+      println(setting.transportProtocal)
+      println(context.system.name)
+      println(remoteAddr.getHostString)
+      println(remoteAddr.getPort)
+      //NEP again
+      println("--------------------------------")
+      val remote = Address(
+        setting.transportProtocal,
+        context.system.name,
+        remoteAddr.getHostString,
+        remoteAddr.getPort
+      )
       val local = Address(setting.transportProtocal, context.system.name, localAddr.getHostString, localAddr.getPort)
 
       val handle = new TcpTransportAssociationHandle(sender(), remote, local)

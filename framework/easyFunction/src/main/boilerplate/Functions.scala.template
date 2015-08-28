@@ -1,0 +1,39 @@
+package qgame.engine.libs
+
+object Functions{
+  [1..28#/**
+   * A Function interface. Used to create 1-arg first-class-functions is Java.
+   */
+  @SerialVersionUID(##1L)
+  @FunctionalInterface
+  trait Function1[[#-T1#], +R] extends java.io.Serializable {
+    @throws(classOf[Exception])
+    def apply([#arg1: T1#]): R
+  }#
+
+  ]
+
+  [1..28#/**
+   * A Consumer interface. Used to create 1-arg consumers in Java.
+   */
+  @SerialVersionUID(##1L)
+  @FunctionalInterface
+  trait Consumer1[[#-T1#]] extends java.io.Serializable {
+    @throws(classOf[Exception])
+    def accept([#arg1: T1#]): Unit
+  }#
+
+  ]
+
+  [1..28#/**
+   * A Predicate interface. Used to create 1-arg predicates in Java.
+   */
+  @SerialVersionUID(##1L)
+  @FunctionalInterface
+  trait Predicate1[[#-T1#]] extends java.io.Serializable {
+    @throws(classOf[Exception])
+    def test([#arg1: T1#]): Boolean
+  }#
+
+  ]
+}

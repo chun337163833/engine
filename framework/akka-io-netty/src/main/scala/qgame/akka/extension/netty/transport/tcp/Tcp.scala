@@ -9,7 +9,6 @@ import io.netty.util.NetUtil
 import qgame.akka.extension.netty.transport.SocketChannelOption.TrafficClass
 import qgame.akka.extension.netty.transport._
 import qgame.akka.extension.netty.transport.tcp.TcpExt.Setting
-import qgame.akka.extension.netty.utils.Platform
 import qgame.engine.config.QGameConfig
 
 /**
@@ -31,7 +30,8 @@ private[netty] object TcpExt {
 
   class Setting(config: QGameConfig) {
     val preferNative = config.getBoolean("preferNative").getOrElse(true)
-    val native = if (Platform.isLinux && preferNative) true else false
+    //val native = if (Platform.isLinux && preferNative) true else false
+    val native = false
 
     object Server {
       val autoAccept = ServerChannelOptions.autoAccept(config.getBoolean("server.auto-accept").getOrElse(true))

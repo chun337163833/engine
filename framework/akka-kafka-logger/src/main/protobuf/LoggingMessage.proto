@@ -1,0 +1,28 @@
+option java_package = "qgame.engine.logging.kafka";
+
+option optimize_for = SPEED;
+
+message LoggingEvent {
+    required LoggingLevel level = 1;
+    optional string host = 2 [default = "localhost"];
+    optional string source = 3;
+    optional string thread = 4;
+    optional string logClass = 5;
+    optional int64 timestamp = 6;
+    message LoggingMDCEntity{
+        required string key = 1;
+        required string value =2;
+    }
+    repeated LoggingMDCEntity mdc =7;
+    optional string message = 8;
+    optional string stackTrace = 9;
+}
+
+
+
+enum LoggingLevel {
+    ERROR = 1;
+    WARNING = 2;
+    INFO = 3;
+    DEBUG = 4;
+}

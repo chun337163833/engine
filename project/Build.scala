@@ -1,5 +1,3 @@
-import com.typesafe.sbt.SbtMultiJvm
-import com.typesafe.sbt.SbtMultiJvm.MultiJvmKeys._
 import com.typesafe.sbt.SbtScalariform._
 import sbt.Keys._
 import sbt._
@@ -9,33 +7,6 @@ object BuildSettings {
   val buildVersion = sys.props.getOrElse("version", "1.0-SNAPSHOT")
   val buildScalaVersion = Dependencies.Versions.scalaVersion
   val buildHomepage = "http://www.q-game.cn"
-  val buildResolver = "local" at "http://127.0.0.1:8080/artifactory/libs-release"
-
-  def makeJavacOptions(version: String) = Seq("-source", version, "-target", version, "-encoding", "UTF-8")
-
-  def commonSettings: Seq[Setting[_]] = Seq(
-    organization := "cn.q-game",
-    version := buildVersion,
-    scalaVersion := buildScalaVersion,
-    homepage := Some.apply(url(buildHomepage)),
-    javacOptions ++= makeJavacOptions("1.8"),
-    fork in Test := true,
-    testListeners in(Test, test) := Nil,
-    resolvers += Resolver.jcenterRepo,
-    publishArtifact in(Compile, packageDoc) := false
-  ) ++ scalariformSettings ++ net.virtualvoid.sbt.graph.Plugin.graphSettings
-
-  def runtimeProject(name: String, dir: String, base: String = "framework"): Project = {
-    //project in file(dir)
-    Project(name, file(base + "/" + dir))
-      .settings(commonSettings: _*)
-      .settings {
-      sources in(Compile, doc) := Seq.empty
-      publishArtifact in(Compile, packageDoc) := false
-    }
-  }
-
-
 
   def frameworkProject(name: String, dir: String) = {
     runtimeProject(name, dir, base = "framework")
@@ -45,20 +16,70 @@ object BuildSettings {
     runtimeProject(name, dir + "/" + sub, base = "framework")
   }
 
-
-  def enginePluginProject(name: String, dir: String) = {
-    runtimeProject(name, dir, base = "plugins")
-  }
-
-  def stackComponentProject(name: String, dir: String, sub: String) = {
-    runtimeProject(name, dir + "/" + sub, base = "stack")
-  }
-
   def anyComponentProject(name: String, base: String, dir: String, sub: String) = {
     runtimeProject(name, dir + "/" + sub, base = base)
   }
-}
 
+  def runtimeProject(name: String, dir: String, base: String = "framework"): Project = {
+    //project in file(dir)
+    Project(name, file(base + "/" + dir))
+      .settings(commonSettings: _*)
+      .settings {
+        sources in(Compile, doc) := Seq.empty
+        publishArtifact in(Compile, packageDoc) := false
+      }
+  }
+
+  val publishSettings = Seq(
+    homepage := Some.apply(url("https://github.com/qgame/engine")),
+    licenses := Seq("BSD-style" -> url("http://www.opensource.org/licenses/bsd-license.php")),
+    publishMavenStyle := true,
+    publishTo := {
+      val nexus = "https://oss.sonatype.org/"
+      if (isSnapshot.value)
+        Some("snapshots" at nexus + "content/repositories/snapshots")
+      else
+        Some("releases" at nexus + "service/local/staging/deploy/maven2")
+    },
+    pomIncludeRepository := {
+      x => false
+    },
+    pomExtra := <scm>
+      <url>https://github.com/qgame/engine</url>
+      <connection>scm:git:git@github.com:qgame/engine.git</connection>
+    </scm>
+      <developers>
+        <developer>
+          <id>hepin1989</id>
+          <name>He Pin</name>
+          <url>https://github.com/hepin1989</url>
+        </developer>
+      </developers>)
+
+  def commonSettings: Seq[Setting[_]] = Seq(
+    organization := "cn.q-game",
+    version := buildVersion,
+    scalaVersion := buildScalaVersion,
+    javacOptions ++= makeJavacOptions("1.8"),
+    publishMavenStyle := true,
+    publishTo := {
+      val nexus = "https://oss.sonatype.org/"
+      if (isSnapshot.value)
+        Some("snapshots" at nexus + "content/repositories/snapshots")
+      else
+        Some("releases"  at nexus + "service/local/staging/deploy/maven2")
+    },
+    pomIncludeRepository := { _ => false },
+    fork in Test := true,
+    testListeners in(Test, test) := Nil,
+    resolvers += ("github" at "https://github.com/qgame/release-repo/raw/master"),
+    resolvers += Resolver.mavenLocal,
+    sources in(Compile, doc) := Seq.empty,
+    publishArtifact in(Compile, packageDoc) := false
+  ) ++ scalariformSettings ++ net.virtualvoid.sbt.graph.Plugin.graphSettings
+
+  def makeJavacOptions(version: String) = Seq("-source", version, "-target", version, "-encoding", "UTF-8")
+}
 
 object ServerBuild extends Build {
 
@@ -73,89 +94,55 @@ object ServerBuild extends Build {
     .aggregate(frameWorkAndPluginsProjects: _*)
 
   lazy val frameWorkAndPluginsProjects = Seq[ProjectReference](
-    akkaIoNetty,
-    akkaCRTD,
-    kryoSerializer,
-    log4j2Logger,
-    netty4RemoteTransport,
-    akkaQuartzJobScheduler,
-    easyConfig,
-    easyJson,
-    easyReflect,
     engine,
-    engineIO,
-    engineSample)
+    engineSample
+  )
 
-  /** ************************************************************************************************************/
-  /** ******************************    plugins     *******************************/
-  /** ************************************************************************************************************/
-  lazy val pluginRedis = enginePluginProject("engine-plugin-redis", "engine-plugin-redis")
-    .settings(Dependencies.pluginRedisDeps)
-    .dependsOn(engine)
-
-  lazy val pluginData = enginePluginProject("engine-plugin-data", "engine-plugin-data")
-    .settings(Dependencies.pluginDataDeps)
-    .dependsOn(engine)
   /** ************************************************************************************************/
   /** ************************************************************************************************/
 
   lazy val engineCommon = frameworkComponentProject("engine-common", "engine", "common")
+    .settings(publishSettings)
 
   lazy val engine = frameworkProject("engine", "engine")
     .settings(Dependencies.engineDeps)
-    .copy(dependencies = Seq(easyConfig,
-    easyReflect,
-    easyJson,
-    engineCommon,
-    akkaRemoteTransportIONetty,
-    log4j2Logger,
-    kryoSerializer,
-    akkaQuartzJobScheduler,
-    akkaCRTD))
+    .copy(dependencies = Seq(
+      engineCommon,
+      akkaIoNetty,
+      kafkaLogger,
+      kryoSerializer,
+      log4j2Logger,
+      akkaQuartzJobScheduler,
+      akkaRemoteTransportIONetty,
+      easyConfig,
+      easyCrypto,
+      easyFiles,
+      easyFunction,
+      easyJson,
+      easyReflect))
 
   lazy val engineSample = frameworkProject("engine-sample", "engine-sample")
     .dependsOn(engine)
-
-  lazy val engineClusterTest = frameworkProject("engine-cluster-test","engine-cluster-test")
-    .settings(Dependencies.engineClusterTestDeps)
-    .settings(SbtMultiJvm.multiJvmSettings ++ Seq(
-    // make sure that MultiJvm test are compiled by the default test compilation
-    compile in MultiJvm <<= (compile in MultiJvm) triggeredBy (compile in Test),
-    // disable parallel tests
-    parallelExecution in Test := false,
-    // make sure that MultiJvm tests are executed by the default test target,
-    // and combine the results from ordinary test and multi-jvm tests
-    executeTests in Test <<= (executeTests in Test, executeTests in MultiJvm) map {
-      case (testResults, multiNodeResults)  =>
-        val overall =
-          if (testResults.overall.id < multiNodeResults.overall.id)
-            multiNodeResults.overall
-          else
-            testResults.overall
-        Tests.Output(overall,
-          testResults.events ++ multiNodeResults.events,
-          testResults.summaries ++ multiNodeResults.summaries)
-    }
-  ))
-    .dependsOn(engine)
-    .configs (MultiJvm)
-
-  lazy val engineIO = frameworkProject("engine-io", "engine-io")
-    .dependsOn(engine)
-
-  lazy val netty4RemoteTransport = frameworkProject("akka-netty4-remote-transport", "akka-netty4-remote-transport")
-    .settings(Dependencies.akkaNetty4RemoteTransportDeps)
+    .dependsOn(kafkaLogger)
 
   lazy val kryoSerializer = frameworkProject("akka-kryo-serializer", "akka-kryo-serializer")
     .settings(Dependencies.akkaKryoSerializerDeps)
-    .dependsOn(easyConfig)
+    .settings(publishSettings)
     .dependsOn(easyReflect)
+    .dependsOn(easyConfig)
 
   lazy val log4j2Logger = frameworkProject("akka-log4j2-logger", "akka-log4j2-logger")
     .settings(Dependencies.akkaLog4j2LoggerDeps)
+    .settings(publishSettings)
+
+  lazy val kafkaLogger = frameworkProject("akka-kafka-logger", "akka-kafka-logger")
+    .settings(Dependencies.akkaKafkaLoggerDeps)
+    .settings(publishSettings)
+    .dependsOn(easyConfig)
 
   lazy val akkaQuartzJobScheduler = frameworkProject("akka-quartz-scheduler", "akka-quartz-scheduler")
     .settings(Dependencies.akkaQuartzSchedulerDeps)
+    .settings(publishSettings)
     .dependsOn(easyConfig)
 
   lazy val akkaIoNetty = frameworkProject("akka-io-netty", "akka-io-netty")
@@ -164,17 +151,29 @@ object ServerBuild extends Build {
 
   lazy val akkaRemoteTransportIONetty = frameworkProject("akka-remote-transport-io-netty", "akka-remote-transport-io-netty")
     .settings(Dependencies.akkaIONettyRemoteTransportDeps)
+    .settings(publishSettings)
     .dependsOn(akkaIoNetty)
-
-  lazy val akkaCRTD = frameworkProject("akka-crdt", "akka-crdt")
-
-  lazy val easyConfig = frameworkProject("easyConfig", "easyConfig")
-    .settings(Dependencies.easyConfigDeps)
 
   lazy val easyReflect = frameworkProject("easyReflect", "easyReflect")
     .settings(Dependencies.easyReflectDeps)
+    .settings(publishSettings)
 
   lazy val easyJson = frameworkProject("easyJson", "easyJson")
     .settings(Dependencies.easyJsonDeps)
+    .settings(publishSettings)
 
+  lazy val easyFunction = frameworkProject("easyFunction", "easyFunction")
+    .settings(publishSettings)
+
+  lazy val easyFiles = frameworkProject("easyFiles", "easyFiles")
+    .dependsOn(easyFunction)
+    .settings(publishSettings)
+
+  lazy val easyCrypto = frameworkProject("easyCrypto", "easyCrypto")
+    .settings(Dependencies.easyCryptoDeps)
+    .settings(publishSettings)
+
+  lazy val easyConfig = frameworkProject("easyConfig", "easyConfig")
+    .settings(Dependencies.easyConfigDeps)
+    .settings(publishSettings)
 }
