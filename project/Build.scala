@@ -24,10 +24,10 @@ object BuildSettings {
     //project in file(dir)
     Project(name, file(base + "/" + dir))
       .settings(commonSettings: _*)
-      .settings {
-        sources in(Compile, doc) := Seq.empty
-        publishArtifact in(Compile, packageDoc) := false
-      }
+//      .settings {
+//        sources in(Compile, doc) := Seq.empty
+//        publishArtifact in(Compile, packageDoc) := false
+//      }
   }
 
   val publishSettings = Seq(
@@ -72,10 +72,9 @@ object BuildSettings {
     pomIncludeRepository := { _ => false },
     fork in Test := true,
     testListeners in(Test, test) := Nil,
-    resolvers += ("github" at "https://github.com/qgame/release-repo/raw/master"),
-    resolvers += Resolver.mavenLocal,
-    sources in(Compile, doc) := Seq.empty,
-    publishArtifact in(Compile, packageDoc) := false
+    resolvers += Resolver.mavenLocal
+    //sources in (Compile, doc) := Seq.empty
+    //publishArtifact in(Compile, packageDoc) := false
   ) ++ scalariformSettings ++ net.virtualvoid.sbt.graph.Plugin.graphSettings
 
   def makeJavacOptions(version: String) = Seq("-source", version, "-target", version, "-encoding", "UTF-8")
